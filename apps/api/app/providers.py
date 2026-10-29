@@ -5,6 +5,7 @@ import os
 import re
 
 from .fusion import norm
+from .transport import Transport
 
 BASE_URL = "https://api.meta.ai/v1"
 SPEECH_MODEL = "muse-voice-transcribe-1.0"
@@ -22,9 +23,11 @@ OBS_SCHEMA = {
 
 def provider_name() -> str:
     explicit = os.getenv("MODEL_PROVIDER", "").lower()
-    if explicit in ("mock", "meta"):
+    if explicit in ("mock", "meta", "replay"):
         return explicit
-    return "meta" if os.getenv("MODEL_API_KEY") else "mock"
+    if explicit:
+        raise ValueError("Unknown MODEL_PROVIDER")
+    return "mock"
 
 
 class MockSpeech:
@@ -75,19 +78,16 @@ class MetaSpeech:
     model = SPEECH_MODEL
 
     def transcribe(self, audio: bytes, filename: str) -> str:
-        import httpx  # UNVERIFIED endpoint shape: confirm against dev.meta.ai/docs/speech-to-text
-        r = httpx.post(f"{BASE_URL}/audio/transcriptions",
-                       headers={"Authorization": f"Bearer {os.environ['MODEL_API_KEY']}"},
-                       files={"file": (filename, audio)}, data={"model": SPEECH_MODEL}, timeout=60)
-        r.raise_for_status()
-        return r.json()["text"]
+        return Transport().request('/audio/transcriptions', {
+            'model': self.model, 'filename': filename,
+            'audio': base64.b64encode(audio).decode()})['text']
+
 
 
 class MetaReason:
     model = REASON_MODEL
 
     def _chat(self, system: str, user: str, schema: dict, image: bytes | None = None) -> dict:
-        import httpx
         content: list = [{"type": "text", "text": user}]
         if image:
             content.append({"type": "image_url",
@@ -95,10 +95,9 @@ class MetaReason:
         body = {"model": self.model, "messages": [{"role": "system", "content": system},
                                                    {"role": "user", "content": content}],
                 "response_format": {"type": "json_schema", "json_schema": {"name": "out", "schema": schema, "strict": True}}}
-        r = httpx.post(f"{BASE_URL}/chat/completions",
-                       headers={"Authorization": f"Bearer {os.environ['MODEL_API_KEY']}"}, json=body, timeout=90)
-        r.raise_for_status()
-        return json.loads(r.json()["choices"][0]["message"]["content"])
+        response = Transport().request('/chat/completions', body)
+        return json.loads(response['choices'][0]['message']['content'])
+
 
     SYS = ("Extract map observations as data. Predicates: boundary_corner (value=order index), "
            "marked_on_sketch (yes), side_of_<landmark> (north|south|east|west). Never invent coordinates. "
@@ -121,6 +120,6 @@ class MetaReason:
 
 
 def get_providers():
-    if provider_name() == "meta":
+    if provider_name() in ("meta", "replay"):
         return MetaSpeech(), MetaReason()
     return MockSpeech(), MockReason()
