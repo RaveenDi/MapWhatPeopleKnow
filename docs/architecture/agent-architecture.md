@@ -1,60 +1,84 @@
 # Agent architecture
 
-Status: implemented and plumbing-tested in **mock mode only**. No live Meta call has been made.
+Status: implemented and verified with offline tests and synthetic dev cases.
+No live Meta calls; Meta endpoints, tool-call compatibility and pricing **UNVERIFIED**.
 
-## Hierarchy (code: `apps/api/app/pipeline.py`)
+## Execution
 
-```
-Orchestrator (deterministic Python, sequential, traced)
- 1. Transcriber            audio -> text            (or passthrough of a supplied transcript)
- 2. SpeechReader  ||  SketchReader                  (parallel, model -> observations)
- 3. Fuser                  deterministic grouping + contradiction detection
- 4. ContradictionReviewer  model writes clarifying QUESTIONS only
- 5. BoundaryValidator      deterministic Shapely/pyproj checks
- 6. Human confirm          user answers contradictions, confirms anchors
-```
+`apps/api/app/pipeline.py` runs sequential stages so one shared call budget is
+predictable: Transcriber -> SpeechReader / SketchReader -> Fuser -> Resolver ->
+BoundaryValidator -> human review. Empty modalities skip extraction calls.
+The contradiction reviewer supplies deterministic fallback questions; the resolver
+may phrase a question through `ask_user`. Answers add immutable resolutions and
+resume the resolver with the same run budget. Confirmations revalidate geometry.
 
-Steps 3 and 5 re-run after every answer or confirmation. Each step appends
-`{agent, role, model, input_summary, output_summary, duration_ms, status}` to `GET /api/runs/{id}/trace`.
+## Provider boundary
 
-## Meta product per agent
+- `mock`: offline regex extraction and a scripted policy using the same tool loop.
+  Sketch labels stand in for vision; mock audio uses a canned transcript.
+- `meta`: Muse Voice transcription and `muse-spark-1.3` structured extraction plus
+  OpenAI-compatible `tools` / `tool_calls`, isolated in `providers.py`.
+- `replay`: canonical request SHA-256 lookup in private `data/recordings/`.
+  No network; exact misses raise `ReplayMiss`. Successful Meta responses are recorded.
+  Credentials/authorization headers are excluded. Inputs may be sensitive.
 
-| Agent | Meta product | Mock stand-in | Status |
-|---|---|---|---|
-| Transcriber | `muse-voice-transcribe-1.0` via `POST /audio/transcriptions` | canned transcript | endpoint shape **UNVERIFIED**, never called |
-| SpeechReader | `muse-spark-1.3`, JSON-schema structured output on `api.meta.ai/v1` | regex extraction | **UNVERIFIED**, never called |
-| SketchReader | `muse-spark-1.3` with image input | reads a supplied label list (no vision) | **UNVERIFIED**, never called; mock does NOT read pixels |
-| ContradictionReviewer | `muse-spark-1.3` | templated question | **UNVERIFIED**, never called |
-| Fuser, BoundaryValidator | none (deterministic) | same code | tested |
+## Plan, act, verify, recover
 
-Open weights (Muse Glimmer, Muse Spark Open) are not used yet; the provider interface would allow swapping them in.
+The resolver sees an evidence-review objective and selects deterministic tools:
+`list_observations(entity?)`, `lookup_gazetteer(name)`, `list_contradictions()`,
+`ask_user(contradiction_id, question)`,
+`propose_anchor(entity, gazetteer_id|null, evidence_ids)`,
+`validate_boundary(anchor_ids)`, `finish()`.
 
-## Deterministic vs model boundary
+The scripted policy inspects evidence, asks about disagreements (pausing the run),
+otherwise looks up and proposes anchors, validates and finishes. Model-selected
+plans use the same dispatcher. Every model turn and tool invocation is traced.
+Unknown tools, invalid arguments or unsupported evidence return tool errors for
+recovery. The model cannot write resolutions, confirmations or coordinates.
+Proposals must match the evidence entity exactly in the supplied gazetteer;
+unknown/misheard names stay unresolved. Deterministic fusion supplies anchor
+candidates even if the resolver pauses before proposing them.
 
-- Model: turns language/pixels into candidate observations; phrases questions.
-- Deterministic: observation identity, grouping, contradiction detection, gazetteer lookup, anchor status, geometry, export.
-- The model never resolves a contradiction, picks coordinates, or confirms an anchor.
+Maximum eight resolver turns per run, including resumed work; maximum 16 tool
+calls per model turn. `MODEL_MAX_CALLS` (default 24) covers extraction, resolver,
+retries and repairs. `RESOLVER_MAX_STEPS` may lower the eight-turn limit.
+Timeouts and HTTP 429/5xx get at most two retries with exponential backoff and
+Retry-After. Delays above 30 seconds fail unresolved rather than wait indefinitely.
+Malformed structured responses get one repair attempt, then unresolved status.
+Caps yield honest partial status; usable evidence survives provider failures.
 
-## Guardrails
+## Trust and geometry
 
-- Observations are frozen; answers add a `Resolution`, nothing is deleted or overwritten.
-- Contradictions keep every alternative with its source ref; neither modality wins by default.
-- A landmark absent from the area gazetteer stays `unresolved`; no location is invented.
-- Polygon needs >= 3 explicitly confirmed, ordered anchors; self-intersection, duplicate vertices and area bounds are rejected.
-- Export contains confirmed anchors and a polygon only when valid; open contradictions are listed.
-- Transcript/model text is treated as data; the system prompt says so (not tested against adversarial input).
-- No API key in files; key only from env, only used in `meta` mode.
-- Valid geometry does not mean the land exists there (stated in every boundary).
+Observations are frozen. Conflicting alternatives and source refs remain visible.
+Only user answers resolve contradictions; only user confirmation accepts anchors.
+Coordinates come from the area gazetteer. Only deterministic `validate_boundary`
+can produce a valid draft polygon, using at least three confirmed ordered anchors.
+It rejects duplicate vertices, intersections and area violations. Geometric
+validity does not establish real-world correctness. Inputs/model text are data,
+not instructions; prompt-injection resistance is **NOT TESTED**.
 
-## Evaluation plan (NOT RUN)
+## Telemetry
 
-Per `docs/planning/04-FEASIBILITY-TEST.md`: four paired cases, one held out. Compare (a) sketch only, (b) sketch + reference transcript,
-(c) sketch + real ASR output with identical candidate context and call budgets. Score correct entities/relations, ambiguities resolved,
-new wrong matches, contradictions surfaced with both refs, unknowns left unresolved, user corrections needed, latency/usage.
-Pass means speech resolves >= 2 preselected ambiguities without a new wrong accepted match.
+Trace entries include model, prompt version, latency, returned tokens and estimated
+USD. `ModelCall` entries count actual provider attempts (script invocations for
+mock); stage/tool entries do not double-count calls. Missing usage is incomplete.
+`GET /api/runs/{id}/trace` retains its array shape and appends a `RunTotals` entry.
+The run response and web page also expose totals. Prices in `config.py` are
+**UNVERIFIED placeholders**. Replay measures local latency, not original latency.
 
-## Verified vs UNVERIFIED
+## Evaluation and evidence
 
-Verified (by `pytest`, mock providers, one synthetic fictional case): fusion, contradiction preservation, anchor/boundary rules, API flow, trace.
-UNVERIFIED / NOT TESTED: every Meta endpoint and response shape, speech accuracy, sketch understanding from pixels,
-multi-user or real-land use, any accuracy or user-benefit claim.
+`evals/run.py` compares sketch, speech and both; truth is scored after inference
+and excluded through an input allowlist. Tests inspect outgoing HTTP payloads.
+Reports include entity/relation precision/recall, surfaced contradictions, wrong
+accepted/proposed anchors, turns/calls/tokens/latency/cost and incomplete runs.
+The four synthetic dev traps cover contradiction, unknown landmark, misheard name
+and negation. The checked-in dev report used 61 scripted calls, zero network calls.
+These numbers verify plumbing, not model accuracy or user benefit. No anchors
+were automatically accepted. Synthetic held-out has **NOT BEEN RUN**.
+
+Verified offline: original evidence/geometry/API flow, recording/replay, bounded
+resolver, usage aggregation, fault recovery, budget enforcement and eval isolation.
+UNVERIFIED: every live Meta shape, prices, speech/vision quality, adversarial input,
+real-land utility, multi-user operation and production durability. Runs remain
+in-memory in one process. See `evals/README.md` for protocol and metric definitions.
