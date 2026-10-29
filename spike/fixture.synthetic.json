@@ -1,0 +1,32 @@
+{
+  "observations": [
+    {
+      "id": "o1",
+      "subject": "path",
+      "predicate": "side_of_school",
+      "value": "east",
+      "source": "sketch",
+      "evidence": "Synthetic observation with explicit orientation"
+    },
+    {
+      "id": "o2",
+      "subject": "path",
+      "predicate": "side_of_school",
+      "value": "west",
+      "source": "transcript",
+      "evidence": "Synthetic text: the path is west of the school"
+    }
+  ],
+  "conflicts": [
+    {
+      "observation_ids": [
+        "o1",
+        "o2"
+      ],
+      "question": "Which side of the school is the path on?"
+    }
+  ],
+  "unresolved": [
+    "Hand-authored validator fixture; no model or ASR used."
+  ]
+}

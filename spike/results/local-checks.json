@@ -1,0 +1,41 @@
+{
+  "recorded_date_slt": "2026-10-29",
+  "project": "Combined: Map What People Know",
+  "core_command": "python map-what-people-know/spike/check_core.py",
+  "core": {
+    "kind": "supplied_evidence_and_synthetic_geometry_only",
+    "checks": {
+      "contradiction_requires_confirmation": true,
+      "both_source_observations_preserved": true,
+      "agreement_is_proposal_not_confirmation": true,
+      "missing_evidence_rejected": true,
+      "confirmed_simple_polygon_accepted": true,
+      "unconfirmed_anchor_rejected": true,
+      "closure_not_inferred": true,
+      "crossing_edges_rejected": true,
+      "collinear_polygon_rejected": true,
+      "nonfinite_vertex_rejected": true
+    },
+    "passed": 10,
+    "total": 10,
+    "model_tested": false,
+    "speech_tested": false
+  },
+  "client_command": "python map-what-people-know/spike/check_probe.py",
+  "client": {
+    "kind": "local_client_validation_only",
+    "checks": {
+      "hand_authored_fixture_valid": true,
+      "unexpected_field_rejected": true,
+      "missing_required_field_rejected": true,
+      "bad_semantic_reference_or_geometry_rejected": true,
+      "bad_type_or_enum_rejected": true,
+      "default_reads_no_key_and_sends_no_request": true
+    },
+    "passed": 6,
+    "total": 6,
+    "model_calls": 0
+  },
+  "live_model_calls": 0,
+  "product_gate": "NOT_TESTED"
+}
