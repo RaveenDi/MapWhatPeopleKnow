@@ -48,8 +48,8 @@ async def post_run(transcript: str | None = Form(None), area_json: str | None = 
                    audio: UploadFile | None = File(None)):
     area = json.loads(area_json) if area_json else demo.AREA
     labels = json.loads(sketch_labels_json) if sketch_labels_json else []
-    if not transcript and not audio:
-        raise HTTPException(422, "transcript or audio required")
+    if not transcript and not audio and not sketch and not labels:
+        raise HTTPException(422, "transcript, audio or sketch required")
     run = pipeline.create_run(area, transcript, await audio.read() if audio else None,
                               audio.filename if audio else "", await sketch.read() if sketch else None, labels)
     return pipeline.view(run)

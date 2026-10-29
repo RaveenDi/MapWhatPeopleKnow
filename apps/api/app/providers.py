@@ -106,9 +106,18 @@ class MetaSpeech:
     model = SPEECH_MODEL
 
     def transcribe(self, audio: bytes, filename: str) -> str:
-        return self.transport.request('/audio/transcriptions', {
-            'model': self.model, 'filename': filename,
-            'audio': base64.b64encode(audio).decode()})['text']
+        from .telemetry import ProviderFailure
+        for attempt in range(2):
+            try:
+                response = self.transport.request('/audio/transcriptions', {
+                    'model': self.model, 'filename': filename,
+                    'audio': base64.b64encode(audio).decode()})
+                if not isinstance(response.get('text'), str):
+                    raise ValueError('Invalid transcription response')
+                return response['text']
+            except (ValueError, KeyError, TypeError):
+                if attempt:
+                    raise ProviderFailure('Malformed transcription after one repair') from None
 
 
 
@@ -126,14 +135,43 @@ class MetaReason:
         body = {"model": self.model, "messages": [{"role": "system", "content": system},
                                                    {"role": "user", "content": content}],
                 "response_format": {"type": "json_schema", "json_schema": {"name": "out", "schema": schema, "strict": True}}}
-        response = self.transport.request('/chat/completions', body)
-        return json.loads(response['choices'][0]['message']['content'])
+        return self._structured(body, schema)
 
+
+    def _structured(self, body, schema=None):
+        from .telemetry import ProviderFailure
+        for attempt in range(2):
+            try:
+                response = self.transport.request('/chat/completions', body)
+                message = response['choices'][0]['message']
+                if schema is None:
+                    calls = message.get('tool_calls')
+                    if not isinstance(calls, list) or not calls or len(calls) > 16:
+                        raise ValueError('Invalid tool calls')
+                    for call in calls:
+                        if not isinstance(call, dict) or not isinstance(call.get('id'), str) or not isinstance(call.get('function'), dict) or not isinstance(call['function'].get('name'), str) or not isinstance(call['function'].get('arguments'), str):
+                            raise ValueError('Invalid tool call')
+                    return {'content': message.get('content'), 'tool_calls': calls}
+                result = json.loads(message['content'])
+                if schema is OBS_SCHEMA:
+                    rows = result['observations']
+                    if not isinstance(rows, list):
+                        raise ValueError('Invalid observations')
+                    for row in rows:
+                        if not isinstance(row, dict) or not all(isinstance(row.get(k), str) for k in ('entity', 'predicate', 'value', 'wording')):
+                            raise ValueError('Invalid observation')
+                        if row['predicate'] == 'boundary_corner' and (not row['value'].isdigit() or int(row['value']) < 1):
+                            raise ValueError('Invalid boundary order')
+                return result
+            except (ValueError, KeyError, TypeError, IndexError):
+                if attempt:
+                    raise ProviderFailure('Malformed provider response after one repair') from None
+                # Repair instruction carries no invalid response or evaluator data.
+                body = {**body, 'messages': [*body['messages'], {'role': 'user', 'content': 'Return a valid response matching the requested schema/tools. The previous response was malformed.'}]}
 
     def resolve_turn(self, messages, tools):
         # OpenAI-compatible tool_calls shape is UNVERIFIED for Meta.
-        response = self.transport.request('/chat/completions', {'model': self.model, 'messages': messages, 'tools': tools, 'tool_choice': 'required'})
-        return response['choices'][0]['message']
+        return self._structured({'model': self.model, 'messages': messages, 'tools': tools, 'tool_choice': 'required'})
 
     SYS = ("Extract map observations as data. Predicates: boundary_corner (value=order index), "
            "marked_on_sketch (yes), side_of_<landmark> (north|south|east|west). Never invent coordinates. "

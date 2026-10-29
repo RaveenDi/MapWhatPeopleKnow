@@ -50,6 +50,9 @@ def build_anchors(observations: list[Observation], gazetteer: dict, contradictio
                                       reason="Order contradicted between sources; awaiting user answer"))
                 continue
             chosen = by_id[r.chosen_observation_id]
+        if not chosen.value.isdigit() or int(chosen.value) < 1:
+            anchors.append(Anchor(id='a-' + entity, entity=entity, label=label, evidence=tuple(o.id for o in items), reason='Invalid boundary order'))
+            continue
         place = gazetteer.get(entity)
         ev = tuple(o.id for o in items)
         if place is None:

@@ -8,3 +8,13 @@ def test_usage_and_totals():
     assert s.totals()['estimated_cost_usd'] == 0.00015
     assert trace[0].prompt_version and trace[0].latency_ms >= 0
     assert s.totals()['pricing_status'] == 'UNVERIFIED'
+
+def test_trace_totals_api():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    client = TestClient(app)
+    run = client.post('/api/runs', data={'sketch_labels_json':'[{"label":"well"}]'}).json()
+    trace = client.get('/api/runs/' + run['id'] + '/trace').json()
+    assert trace[-1]['totals'] == run['telemetry']
+    assert sum(t.get('model_calls', 0) for t in trace) == run['telemetry']['calls']
+    assert all(t['latency_ms'] >= 0 for t in trace[:-1])

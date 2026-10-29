@@ -1,7 +1,7 @@
 """Immutable evidence contracts. Observations are never edited; corrections add history."""
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class Frozen(BaseModel):
@@ -63,6 +63,12 @@ class AgentStep(BaseModel):
     estimated_cost_usd: Optional[float] = None
     pricing_status: str = "UNVERIFIED"
     model_calls: int = 0
+
+    @model_validator(mode='after')
+    def fill_latency(self):
+        if not self.latency_ms:
+            self.latency_ms = self.duration_ms
+        return self
 
 
 class Resolution(Frozen):
