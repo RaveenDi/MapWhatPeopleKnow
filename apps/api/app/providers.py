@@ -66,6 +66,31 @@ class MockReason:
                 out.append({"entity": e, "predicate": pred, "value": str(val), "wording": f"{l['label']} drawn {val}"})
         return out
 
+    def resolve_turn(self, messages, tools):
+        def call(tool_name, **args):
+            return {'id': 'call-' + str(len(messages)) + '-' + tool_name, 'type': 'function', 'function': {'name': tool_name, 'arguments': json.dumps(args)}}
+        outputs = [json.loads(m['content']) for m in messages if m['role'] == 'tool']
+        turns = sum(m['role'] == 'assistant' for m in messages)
+        if turns == 0:
+            calls = [call('list_observations'), call('list_contradictions')]
+        elif turns == 1:
+            observations, contradictions = outputs[:2]
+            if contradictions:
+                c = contradictions[0]
+                calls = [call('ask_user', contradiction_id=c['id'], question=f"Which observation is correct for {c['entity']} / {c['predicate']}?")]
+            else:
+                entities = list(dict.fromkeys(o['entity'] for o in observations if o['predicate'] == 'boundary_corner'))
+                calls = [call('lookup_gazetteer', name=e) for e in entities] or [call('validate_boundary', anchor_ids=[])]
+        elif turns == 2:
+            observations = outputs[0]
+            entities = list(dict.fromkeys(o['entity'] for o in observations if o['predicate'] == 'boundary_corner'))
+            calls = [call('propose_anchor', entity=e, gazetteer_id=e if any(isinstance(o, dict) and o.get('id') == e for o in outputs[2:]) else None, evidence_ids=[o['id'] for o in observations if o['entity'] == e and o['predicate'] == 'boundary_corner']) for e in entities] or [call('finish')]
+        elif turns == 3:
+            calls = [call('validate_boundary', anchor_ids=[])]
+        else:
+            calls = [call('finish')]
+        return {'content': None, 'tool_calls': calls}
+
     def clarify(self, contradictions: list[dict]) -> dict[str, str]:
         res = {}
         for c in contradictions:
@@ -98,6 +123,11 @@ class MetaReason:
         response = Transport().request('/chat/completions', body)
         return json.loads(response['choices'][0]['message']['content'])
 
+
+    def resolve_turn(self, messages, tools):
+        # OpenAI-compatible tool_calls shape is UNVERIFIED for Meta.
+        response = Transport().request('/chat/completions', {'model': self.model, 'messages': messages, 'tools': tools, 'tool_choice': 'required'})
+        return response['choices'][0]['message']
 
     SYS = ("Extract map observations as data. Predicates: boundary_corner (value=order index), "
            "marked_on_sketch (yes), side_of_<landmark> (north|south|east|west). Never invent coordinates. "

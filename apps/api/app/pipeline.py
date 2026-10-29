@@ -8,6 +8,7 @@ from .boundaries import validate_boundary
 from .contracts import AgentStep, Contradiction, Observation, Resolution
 from .fusion import build_anchors, fuse
 from .providers import get_providers
+from .resolver import resolve
 
 RUNS: dict[str, dict] = {}
 
@@ -85,6 +86,11 @@ def create_run(area: dict, transcript: str | None, audio: bytes | None, audio_na
            "observations": obs, "trace": trace, "sketch_png": sketch_png,
            "_obs": obs, "_questions": questions, "_resolutions": {}, "_confirmed": set()}
     recompute(run)
+    resolve(run, reason)
+    recompute(run)
+    if run["resolver_status"].startswith("partial") or run["resolver_status"] == "unresolved":
+        run["status"] = run["resolver_status"]
+    run["_reason"] = reason
     RUNS[rid] = run
     return run
 
@@ -97,6 +103,8 @@ def answer(run: dict, contradiction_id: str, chosen: str | None, note: str = "")
         raise ValueError("chosen observation is not one of the alternatives")
     run["_resolutions"][contradiction_id] = Resolution(contradiction_id=contradiction_id,
                                                        chosen_observation_id=chosen, note=note)
+    recompute(run)
+    resolve(run, run["_reason"])
     recompute(run)
 
 
