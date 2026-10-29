@@ -56,6 +56,13 @@ class AgentStep(BaseModel):
     output_summary: str = ""
     duration_ms: float = 0.0
     status: str = "ok"
+    prompt_version: str = "evidence-resolver-v1"
+    latency_ms: float = 0.0
+    prompt_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
+    estimated_cost_usd: Optional[float] = None
+    pricing_status: str = "UNVERIFIED"
+    model_calls: int = 0
 
 
 class Resolution(Frozen):

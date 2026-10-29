@@ -9,11 +9,17 @@ class ReplayMiss(RuntimeError):
     pass
 
 class Transport:
-    def __init__(self, mode=None, directory=None):
+    def __init__(self, mode=None, directory=None, session=None):
+        self.session = session
         self.mode = mode or os.getenv('MODEL_PROVIDER', 'mock')
         self.directory = Path(directory or os.getenv('RECORDINGS_DIR', 'data/recordings'))
 
     def request(self, endpoint, body):
+        if self.session:
+            return self.session.invoke(body.get('model', 'unknown'), endpoint, lambda: self._request(endpoint, body))
+        return self._request(endpoint, body)
+
+    def _request(self, endpoint, body):
         request = {'endpoint': endpoint, 'body': body}
         digest = hashlib.sha256(json.dumps(request, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
         path = self.directory / (digest + '.json')

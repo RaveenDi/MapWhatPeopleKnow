@@ -76,7 +76,8 @@ def get_run(rid: str):
 
 @app.get("/api/runs/{rid}/trace")
 def get_trace(rid: str):
-    return [s.model_dump() for s in _run(rid)["trace"]]
+    run = _run(rid)
+    return [s.model_dump() for s in run["trace"]] + [{"agent": "RunTotals", "role": "run totals", "model": "none", "input_summary": "", "output_summary": "", "duration_ms": 0, "status": run["status"], "totals": run["_session"].totals()}]
 
 
 @app.get("/api/runs/{rid}/sketch")

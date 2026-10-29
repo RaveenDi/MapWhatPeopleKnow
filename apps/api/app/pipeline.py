@@ -9,6 +9,7 @@ from .contracts import AgentStep, Contradiction, Observation, Resolution
 from .fusion import build_anchors, fuse
 from .providers import get_providers
 from .resolver import resolve
+from .telemetry import Session
 
 RUNS: dict[str, dict] = {}
 
@@ -55,8 +56,9 @@ def recompute(run: dict) -> None:
 
 def create_run(area: dict, transcript: str | None, audio: bytes | None, audio_name: str,
                sketch_png: bytes | None, sketch_labels: list[dict]) -> dict:
-    speech, reason = get_providers()
     trace: list[AgentStep] = []
+    session = Session(trace)
+    speech, reason = get_providers(session)
     if transcript:
         text = _timed(trace, "Transcriber", "passthrough of supplied transcript", "none", "text", lambda: transcript,
                       lambda t: f"{len(t)} chars")
@@ -84,7 +86,7 @@ def create_run(area: dict, transcript: str | None, audio: bytes | None, audio_na
     rid = uuid.uuid4().hex[:10]
     run = {"id": rid, "area": area, "provider_mode": type(reason).__name__, "transcript": text,
            "observations": obs, "trace": trace, "sketch_png": sketch_png,
-           "_obs": obs, "_questions": questions, "_resolutions": {}, "_confirmed": set()}
+           "_session": session, "_obs": obs, "_questions": questions, "_resolutions": {}, "_confirmed": set()}
     recompute(run)
     resolve(run, reason)
     recompute(run)
@@ -125,6 +127,7 @@ def view(run: dict) -> dict:
     out["anchors"] = [a.model_dump() for a in run["anchors"]]
     out["boundary"] = run["boundary"].model_dump()
     out["resolutions"] = {k: v.model_dump() for k, v in run["_resolutions"].items()}
+    out["telemetry"] = run["_session"].totals()
     out["has_sketch"] = bool(run["sketch_png"])
     return out
 

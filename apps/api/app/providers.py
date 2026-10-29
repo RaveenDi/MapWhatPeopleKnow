@@ -100,16 +100,22 @@ class MockReason:
 
 
 class MetaSpeech:
+    def __init__(self, session=None):
+        self.transport = Transport(session=session)
+
     model = SPEECH_MODEL
 
     def transcribe(self, audio: bytes, filename: str) -> str:
-        return Transport().request('/audio/transcriptions', {
+        return self.transport.request('/audio/transcriptions', {
             'model': self.model, 'filename': filename,
             'audio': base64.b64encode(audio).decode()})['text']
 
 
 
 class MetaReason:
+    def __init__(self, session=None):
+        self.transport = Transport(session=session)
+
     model = REASON_MODEL
 
     def _chat(self, system: str, user: str, schema: dict, image: bytes | None = None) -> dict:
@@ -120,13 +126,13 @@ class MetaReason:
         body = {"model": self.model, "messages": [{"role": "system", "content": system},
                                                    {"role": "user", "content": content}],
                 "response_format": {"type": "json_schema", "json_schema": {"name": "out", "schema": schema, "strict": True}}}
-        response = Transport().request('/chat/completions', body)
+        response = self.transport.request('/chat/completions', body)
         return json.loads(response['choices'][0]['message']['content'])
 
 
     def resolve_turn(self, messages, tools):
         # OpenAI-compatible tool_calls shape is UNVERIFIED for Meta.
-        response = Transport().request('/chat/completions', {'model': self.model, 'messages': messages, 'tools': tools, 'tool_choice': 'required'})
+        response = self.transport.request('/chat/completions', {'model': self.model, 'messages': messages, 'tools': tools, 'tool_choice': 'required'})
         return response['choices'][0]['message']
 
     SYS = ("Extract map observations as data. Predicates: boundary_corner (value=order index), "
@@ -149,7 +155,10 @@ class MetaReason:
         return {q["id"]: q["question"] for q in r["questions"]}
 
 
-def get_providers():
+def get_providers(session=None):
     if provider_name() in ("meta", "replay"):
-        return MetaSpeech(), MetaReason()
+        return MetaSpeech(session), MetaReason(session)
+    if session:
+        from .telemetry import MeteredMock
+        return MeteredMock(MockSpeech(), session), MeteredMock(MockReason(), session)
     return MockSpeech(), MockReason()
