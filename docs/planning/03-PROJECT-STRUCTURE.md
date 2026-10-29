@@ -1,6 +1,6 @@
 # Proposed implementation structure
 
-If selected, use the same single product repo layout as [Drawn to Scale](../../drawn-to-scale/docs/03-PROJECT-STRUCTURE.md), with these feature modules. No separate repos, microservices or deployed apps have been created.
+If selected, use the same single product repo layout as Drawn to Scale, with these feature modules. No separate repos, microservices or deployed apps have been created.
 
 ```text
 map-what-people-know/
@@ -47,4 +47,4 @@ Use the base environment files, locks, deployment and API-contract generation. R
 
 Build order: mapping extraction gate → paired sketch/transcript comparison → real speech smoke test → contradiction handling → geographic candidate review → optional bounded polygon → minimal interface → evaluation/video. If speech does not improve the paired cases, stop the combined extension and keep Drawn to Scale as a candidate.
 
-Budget: use the shared 45-hour allocation in [the base structure](../../drawn-to-scale/docs/03-PROJECT-STRUCTURE.md). The two-hour combined experiment is incremental after the three-hour mapping experiment. If run alone without the mapping work, allow up to three hours for a shallow extraction/fusion probe and do not call that an end-to-end mapping pass.
+Budget: use the shared 45-hour allocation in the base structure. The two-hour combined experiment is incremental after the three-hour mapping experiment. If run alone without the mapping work, allow up to three hours for a shallow extraction/fusion probe and do not call that an end-to-end mapping pass.

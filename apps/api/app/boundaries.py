@@ -1,4 +1,4 @@
-"""Deterministic boundary validation in local projected metres (ports spike/check_core.py)."""
+"""Deterministic boundary validation in local projected metres (ports evals/probes/check_core.py)."""
 import math
 
 from pyproj import Transformer

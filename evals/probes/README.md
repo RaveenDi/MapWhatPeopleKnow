@@ -42,6 +42,6 @@ python map-what-people-know/spike/model_probe.py --image map-what-people-know/sp
 
 The live command sends one request to the fixed Meta endpoint, refuses redirects, waits up to 45 seconds for the network operation and performs no automatic retry. Network timeout can leave the remote outcome unknown; it is not a cancellation guarantee. The probe caps input size and response bytes, but has not yet verified a provider token-budget parameter; review account usage before repeated live runs. It defaults to `muse-spark-1.3`, with `META_MODEL` available as a local override.
 
-Output is written to a new file under `spike/private/`; an explicit `--output` must stay there and cannot overwrite an existing file. The report contains response data, validity, timing, usage when returned, input hashes and prompt/schema hashes. It never saves the API key or request headers. Format validation is not a factual-accuracy check.
+Output is written to a new file under `evals/probes/private/`; an explicit `--output` must stay there and cannot overwrite an existing file. The report contains response data, validity, timing, usage when returned, input hashes and prompt/schema hashes. It never saves the API key or request headers. Format validation is not a factual-accuracy check.
 
 This probe uses a supplied transcript; it does **not** upload audio or evaluate speech recognition. Actual transcription and the sketch-only comparison remain separate steps in the feasibility protocol.

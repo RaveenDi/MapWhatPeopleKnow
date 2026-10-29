@@ -5,8 +5,8 @@ Combine a person's sketch and spoken explanation into map features and, where an
 This folder is its **own Git repository**. The owner runs `git init` and creates the remote; the parent planning repo ignores this folder. Read this file first. `CLAUDE.md` imports it.
 
 ## Layout
-- `docs/`: planning (workflow, architecture, structure, feasibility test, results). `docs/04-FEASIBILITY-TEST.md` defines the gate; `docs/05-TEST-RESULTS.md` records actual evidence.
-- `spike/`: small feasibility probes and synthetic checks (not product code, not evidence of model performance).
+- `docs/`: [index](docs/README.md): `architecture/` (agent design), `deployment.md`, `planning/` (original plan, feasibility gate, results).
+- `evals/probes/`: small feasibility probes and synthetic checks (not product code, not evidence of model performance).
 - Planned code: `apps/api` (speech adapter, evidence fusion, contradictions, boundary validator), `apps/web`, `evals/` (sketch-only vs sketch+transcript vs sketch+ASR). Nothing is built yet.
 - `.env` (gitignored, never read aloud or printed) holds `MODEL_API_KEY`; `.env.example` is the template.
 

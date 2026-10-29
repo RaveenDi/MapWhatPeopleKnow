@@ -2,7 +2,7 @@
 
 ## Shared core and distinct responsibility
 
-Use the [Drawn to Scale stack and run infrastructure](../../drawn-to-scale/docs/02-ARCHITECTURE.md): React/TypeScript/Vite, FastAPI/Pydantic, MapLibre, local-coordinate geometry, SQLite run/event storage and a bounded worker. Add a speech adapter, evidence fusion and a strict draft-boundary validator. Share code only after the mapping probe works; the folders remain independent planning alternatives.
+Use the Drawn to Scale stack and run infrastructure: React/TypeScript/Vite, FastAPI/Pydantic, MapLibre, local-coordinate geometry, SQLite run/event storage and a bounded worker. Add a speech adapter, evidence fusion and a strict draft-boundary validator. Share code only after the mapping probe works; the folders remain independent planning alternatives.
 
 ```mermaid
 flowchart LR

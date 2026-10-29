@@ -48,7 +48,7 @@ Open weights (Muse Glimmer, Muse Spark Open) are not used yet; the provider inte
 
 ## Evaluation plan (NOT RUN)
 
-Per `docs/04-FEASIBILITY-TEST.md`: four paired cases, one held out. Compare (a) sketch only, (b) sketch + reference transcript,
+Per `docs/planning/04-FEASIBILITY-TEST.md`: four paired cases, one held out. Compare (a) sketch only, (b) sketch + reference transcript,
 (c) sketch + real ASR output with identical candidate context and call budgets. Score correct entities/relations, ambiguities resolved,
 new wrong matches, contradictions surfaced with both refs, unknowns left unresolved, user corrections needed, latency/usage.
 Pass means speech resolves >= 2 preselected ambiguities without a new wrong accepted match.

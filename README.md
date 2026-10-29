@@ -21,11 +21,26 @@ Meta mode targets `api.meta.ai/v1` and is UNVERIFIED.
 
 ## Status
 
-Working end to end in mock mode on a fictional area (Lantern Cove). Runs are held in memory. Design: [docs/AGENT-ARCHITECTURE.md](docs/AGENT-ARCHITECTURE.md).
-Planning: [docs/README.md](docs/README.md), gate: [docs/04-FEASIBILITY-TEST.md](docs/04-FEASIBILITY-TEST.md), rules: [AGENTS.md](AGENTS.md).
+Working end to end in mock mode on a fictional area (Lantern Cove). Runs are held in memory. Design: [docs/architecture/agent-architecture.md](docs/architecture/agent-architecture.md).
+Planning: [docs/planning/overview.md](docs/planning/overview.md), gate: [docs/planning/04-FEASIBILITY-TEST.md](docs/planning/04-FEASIBILITY-TEST.md), rules: [AGENTS.md](AGENTS.md).
 
 ## NOT tested
 
 Any live Meta call (transcription, structured output, vision); speech accuracy; reading real sketch pixels (mock uses a label list);
 real places or boundaries; multiple users; persistence; adversarial prompt-injection input. No accuracy is measured or claimed.
-`python spike/check_core.py` remains the original synthetic probe.
+`python evals/probes/check_core.py` remains the original synthetic probe.
+
+
+## Repository layout
+
+```
+apps/api/        FastAPI service (agents, providers, domain logic, tests)
+apps/web/        user interface
+evals/           evaluation runners, fixtures and feasibility probes (evals/probes)
+scripts/         demo data and local tooling
+docs/            architecture/, deployment.md, planning/
+.claude/skills/  agent-architecture, harness, evaluation, deployment skills
+Dockerfile  docker-compose.yml  .github/workflows/ci.yml
+```
+
+Deploy: see [docs/deployment.md](docs/deployment.md).
