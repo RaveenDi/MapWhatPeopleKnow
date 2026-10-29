@@ -104,7 +104,7 @@ def evaluate(rows, provider, split, modes, max_calls, base=ROOT / 'evals'):
         summary[mode] = aggregate
     return {'provider': provider, 'split': split, 'max_calls': max_calls, 'calls': used,
             'evidence_status': 'Synthetic/mock results test plumbing only; model accuracy and user benefit UNVERIFIED.',
-            'pricing_status': 'UNVERIFIED; missing usage/cost is incomplete, not measured zero.',
+            'pricing_status': 'Published Standard rates (verified 2026-10-30); missing usage/cost is incomplete, not measured zero.',
             'summary': summary, 'cases': results}
 
 

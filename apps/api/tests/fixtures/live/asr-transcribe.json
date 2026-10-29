@@ -1,0 +1,28 @@
+{
+ "source": "live call to POST https://api.meta.ai/v1/asr/transcribe on 2026-10-30, synthetic input only (muse-voice-transcribe-1.0, multipart WAV, synthetic Windows TTS speech)",
+ "latency_ms": 6390,
+ "request": {
+  "query": {
+   "sessionId": "smoke-test-0001"
+  },
+  "multipart": {
+   "request": {
+    "mode": "PUSH_TO_TALK",
+    "model": "muse-voice-transcribe-1.0",
+    "audioEncoding": "WAV"
+   },
+   "audio": {
+    "filename": "demo-transcript.wav",
+    "bytes": 374286,
+    "sha256": "bbe534667eef5251bad0336c0cf5260ed7fc17417a4981796ef289139653283e",
+    "format": "WAV mono 16-bit PCM 16 kHz, Windows System.Speech synthetic"
+   }
+  }
+ },
+ "response": {
+  "sessionId": "smoke-test-0001",
+  "transcript": "My family field is bounded by the old well, then Mill Bridge, then Stone Gate, then the banyan tree, and then the red shrine. The footpath runs west of the school.",
+  "audioDurationMs": 11760,
+  "turns": []
+ }
+}

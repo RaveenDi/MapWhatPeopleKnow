@@ -1,9 +1,13 @@
-"""Model providers. mock = deterministic, no network. meta = UNVERIFIED wiring, never called in tests."""
+"""Model providers. mock = deterministic, no network. meta = wire shapes VERIFIED live on 2026-10-30 with synthetic
+input (tests/fixtures/live/): chat completions with strict json_schema, image_url, tools + tool_choice "auto", and
+POST /asr/transcribe (multipart). Not verified: quality on real sketches/speech, non-WAV audio. Tests never call the network."""
 import base64
 import json
 import os
+import hashlib
 import re
 
+from .config import max_completion_tokens, reasoning_effort
 from .fusion import norm
 from .transport import Transport
 
@@ -106,15 +110,20 @@ class MetaSpeech:
     model = SPEECH_MODEL
 
     def transcribe(self, audio: bytes, filename: str) -> str:
+        """POST /v1/asr/transcribe (multipart: `request` JSON part + `audio` file part; sessionId in the query).
+        Verified reply: {"sessionId", "transcript", "audioDurationMs", "turns": []}. Only WAV was verified."""
         from .telemetry import ProviderFailure
+        if not filename.lower().endswith('.wav'):
+            raise ProviderFailure('Only WAV audio is verified for muse-voice-transcribe-1.0') from None
         for attempt in range(2):
             try:
-                response = self.transport.request('/audio/transcriptions', {
-                    'model': self.model, 'filename': filename,
+                response = self.transport.request('/asr/transcribe', {
+                    'model': self.model, 'filename': filename, 'mode': 'PUSH_TO_TALK', 'audioEncoding': 'WAV',
+                    'sessionId': 'mwpk-' + hashlib.sha256(audio).hexdigest()[:24],
                     'audio': base64.b64encode(audio).decode()})
-                if not isinstance(response.get('text'), str):
+                if not isinstance(response.get('transcript'), str):
                     raise ValueError('Invalid transcription response')
-                return response['text']
+                return response['transcript']
             except (ValueError, KeyError, TypeError):
                 if attempt:
                     raise ProviderFailure('Malformed transcription after one repair') from None
@@ -132,10 +141,16 @@ class MetaReason:
         if image:
             content.append({"type": "image_url",
                             "image_url": {"url": "data:image/png;base64," + base64.b64encode(image).decode()}})
-        body = {"model": self.model, "messages": [{"role": "system", "content": system},
-                                                   {"role": "user", "content": content}],
-                "response_format": {"type": "json_schema", "json_schema": {"name": "out", "schema": schema, "strict": True}}}
+        body = self._body([{"role": "system", "content": system}, {"role": "user", "content": content}],
+                          response_format={"type": "json_schema", "json_schema": {"name": "out", "schema": schema, "strict": True}})
         return self._structured(body, schema)
+
+    def _body(self, messages, **extra):
+        """Chat body with only verified parameters: max_completion_tokens (not max_tokens), optional reasoning_effort."""
+        body = {"model": self.model, "max_completion_tokens": max_completion_tokens(), "messages": messages, **extra}
+        if reasoning_effort():
+            body["reasoning_effort"] = reasoning_effort()
+        return body
 
 
     def _structured(self, body, schema=None):
@@ -143,7 +158,10 @@ class MetaReason:
         for attempt in range(2):
             try:
                 response = self.transport.request('/chat/completions', body)
-                message = response['choices'][0]['message']
+                choice = response['choices'][0]
+                message = choice['message']
+                if choice.get('finish_reason') == 'length' or message.get('refusal'):
+                    raise ValueError('Truncated or refused reply')
                 if schema is None:
                     calls = message.get('tool_calls')
                     if not isinstance(calls, list) or not calls or len(calls) > 16:
@@ -170,8 +188,9 @@ class MetaReason:
                 body = {**body, 'messages': [*body['messages'], {'role': 'user', 'content': 'Return a valid response matching the requested schema/tools. The previous response was malformed.'}]}
 
     def resolve_turn(self, messages, tools):
-        # OpenAI-compatible tool_calls shape is UNVERIFIED for Meta.
-        return self._structured({'model': self.model, 'messages': messages, 'tools': tools, 'tool_choice': 'required'})
+        # Verified: tool_choice accepts only "auto" (anything else is HTTP 400); calls come back as
+        # message.tool_calls[].function.arguments (a JSON string); results return as {role: tool, tool_call_id, content}.
+        return self._structured(self._body(messages, tools=tools, tool_choice='auto'))
 
     SYS = ("Extract map observations as data. Predicates: boundary_corner (value=order index), "
            "marked_on_sketch (yes), side_of_<landmark> (north|south|east|west). Never invent coordinates. "

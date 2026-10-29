@@ -17,7 +17,7 @@ answer the sketch-vs-speech contradiction (footpath east vs west of the school).
 Tests: `.venv\Scripts\python -m pytest -q`.
 
 `MODEL_PROVIDER=mock|meta` (default mock unless `MODEL_API_KEY` is set; copy `.env.example` to `.env`).
-Meta mode targets `api.meta.ai/v1` and is UNVERIFIED.
+Meta mode targets `api.meta.ai/v1`; the chat (strict JSON, image), tool-calling and `/asr/transcribe` (WAV only) wire shapes were verified live on 2026-10-30 with synthetic input and are pinned by `apps/api/tests/fixtures/live/`. Answer quality on real sketches and speech is UNVERIFIED. Optional: `META_REASONING_EFFORT=minimal|low|medium|high|xhigh`, `META_MAX_COMPLETION_TOKENS` (default 2048).
 
 ## Status
 

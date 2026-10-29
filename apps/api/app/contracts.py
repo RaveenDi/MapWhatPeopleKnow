@@ -61,7 +61,7 @@ class AgentStep(BaseModel):
     prompt_tokens: Optional[int] = None
     completion_tokens: Optional[int] = None
     estimated_cost_usd: Optional[float] = None
-    pricing_status: str = "UNVERIFIED"
+    pricing_status: str = "published Standard rates, verified 2026-10-30"
     model_calls: int = 0
 
     @model_validator(mode='after')

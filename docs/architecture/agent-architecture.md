@@ -1,7 +1,7 @@
 # Agent architecture
 
 Status: implemented and verified with offline tests and synthetic dev cases.
-No live Meta calls; Meta endpoints, tool-call compatibility and pricing **UNVERIFIED**.
+Meta wire shapes (chat, strict JSON, image input, tool calls with `tool_choice` auto, `/asr/transcribe`) and published prices verified live 2026-10-30 on synthetic input; quality on real sketches/speech **UNVERIFIED**.
 
 ## Execution
 
@@ -63,8 +63,8 @@ Trace entries include model, prompt version, latency, returned tokens and estima
 USD. `ModelCall` entries count actual provider attempts (script invocations for
 mock); stage/tool entries do not double-count calls. Missing usage is incomplete.
 `GET /api/runs/{id}/trace` retains its array shape and appends a `RunTotals` entry.
-The run response and web page also expose totals. Prices in `config.py` are
-**UNVERIFIED placeholders**. Replay measures local latency, not original latency.
+The run response and web page also expose totals. Prices in `config.py` are the
+published Standard rates (verified 2026-10-30; speech is $0.18 per audio hour). Replay measures local latency, not original latency.
 
 ## Evaluation and evidence
 
@@ -79,6 +79,6 @@ were automatically accepted. Synthetic held-out has **NOT BEEN RUN**.
 
 Verified offline: original evidence/geometry/API flow, recording/replay, bounded
 resolver, usage aggregation, fault recovery, budget enforcement and eval isolation.
-UNVERIFIED: every live Meta shape, prices, speech/vision quality, adversarial input,
+UNVERIFIED: map-specific schemas and tool sets were not sent live (strict-mode compliance is checked by inspection), non-WAV audio, speech/vision quality, adversarial input,
 real-land utility, multi-user operation and production durability. Runs remain
 in-memory in one process. See `evals/README.md` for protocol and metric definitions.

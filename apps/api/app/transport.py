@@ -61,8 +61,11 @@ class Transport:
             raise ValueError('Network transport requires meta or replay')
         import httpx
         kwargs = {'headers': {'Authorization': 'Bearer ' + os.environ['MODEL_API_KEY']}, 'timeout': 90}
-        if endpoint == '/audio/transcriptions':
-            kwargs.update(files={'file': (body['filename'], base64.b64decode(body['audio']))}, data={'model': body['model']})
+        if endpoint == '/asr/transcribe':
+            meta = {'mode': body['mode'], 'model': body['model'], 'audioEncoding': body['audioEncoding']}
+            kwargs.update(params={'sessionId': body['sessionId']}, files={
+                'request': (None, json.dumps(meta), 'application/json'),
+                'audio': (body['filename'], base64.b64decode(body['audio']), 'audio/wav')})
         else:
             kwargs['json'] = body
         response = httpx.post('https://api.meta.ai/v1' + endpoint, **kwargs)
