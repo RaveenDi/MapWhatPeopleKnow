@@ -1,0 +1,657 @@
+{
+  "provider": "mock",
+  "split": "dev",
+  "max_calls": 100,
+  "calls": 61,
+  "evidence_status": "Synthetic/mock results test plumbing only; model accuracy and user benefit UNVERIFIED.",
+  "pricing_status": "UNVERIFIED; missing usage/cost is incomplete, not measured zero.",
+  "summary": {
+    "sketch": {
+      "entity": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 5,
+        "predicted": 5,
+        "expected": 5
+      },
+      "relation": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "tp": 3,
+        "predicted": 3,
+        "expected": 6
+      },
+      "contradiction": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "tp": 0,
+        "predicted": 0,
+        "expected": 1
+      },
+      "contradictions_surfaced": 0,
+      "wrong_accepted_anchors": 0,
+      "accepted_anchors": 0,
+      "wrong_proposed_anchors": 0,
+      "telemetry": {
+        "steps": 14,
+        "calls": 18,
+        "tokens": 0,
+        "latency_ms": 1.172,
+        "estimated_cost_usd": 0
+      },
+      "incomplete_runs": 0
+    },
+    "speech": {
+      "entity": {
+        "precision": 0.6666666666666666,
+        "recall": 0.8,
+        "tp": 4,
+        "predicted": 6,
+        "expected": 5
+      },
+      "relation": {
+        "precision": 0.6666666666666666,
+        "recall": 0.6666666666666666,
+        "tp": 4,
+        "predicted": 6,
+        "expected": 6
+      },
+      "contradiction": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "tp": 0,
+        "predicted": 0,
+        "expected": 1
+      },
+      "contradictions_surfaced": 0,
+      "wrong_accepted_anchors": 0,
+      "accepted_anchors": 0,
+      "wrong_proposed_anchors": 0,
+      "telemetry": {
+        "steps": 16,
+        "calls": 20,
+        "tokens": 0,
+        "latency_ms": 2.1310000000000002,
+        "estimated_cost_usd": 0
+      },
+      "incomplete_runs": 0
+    },
+    "both": {
+      "entity": {
+        "precision": 0.7142857142857143,
+        "recall": 1.0,
+        "tp": 5,
+        "predicted": 7,
+        "expected": 5
+      },
+      "relation": {
+        "precision": 0.75,
+        "recall": 1.0,
+        "tp": 6,
+        "predicted": 8,
+        "expected": 6
+      },
+      "contradiction": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 1,
+        "predicted": 1,
+        "expected": 1
+      },
+      "contradictions_surfaced": 1,
+      "wrong_accepted_anchors": 0,
+      "accepted_anchors": 0,
+      "wrong_proposed_anchors": 0,
+      "telemetry": {
+        "steps": 15,
+        "calls": 23,
+        "tokens": 0,
+        "latency_ms": 1.373,
+        "estimated_cost_usd": 0
+      },
+      "incomplete_runs": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "contradiction",
+      "mode": "sketch",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 2,
+          "precision": 1.0,
+          "recall": 0.5
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 1,
+          "precision": 0.0,
+          "recall": 0.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 4,
+        "steps": 3,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.497,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 1.658
+    },
+    {
+      "id": "contradiction",
+      "mode": "speech",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 2,
+          "precision": 1.0,
+          "recall": 0.5
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 1,
+          "precision": 0.0,
+          "recall": 0.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 4,
+        "steps": 3,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.767,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 1.642
+    },
+    {
+      "id": "contradiction",
+      "mode": "both",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 2,
+          "predicted": 2,
+          "expected": 2,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradiction": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 1,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 4,
+        "steps": 2,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.157,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 1.278
+    },
+    {
+      "id": "unknown-landmark",
+      "mode": "sketch",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 2,
+          "predicted": 2,
+          "expected": 2,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 2,
+          "precision": 0.0,
+          "recall": 0.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 4,
+        "steps": 3,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.152,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 0.926
+    },
+    {
+      "id": "unknown-landmark",
+      "mode": "speech",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 2,
+          "predicted": 2,
+          "expected": 2,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 2,
+          "predicted": 2,
+          "expected": 2,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 6,
+        "steps": 5,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.727,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 2.166
+    },
+    {
+      "id": "unknown-landmark",
+      "mode": "both",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 2,
+          "predicted": 2,
+          "expected": 2,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 2,
+          "predicted": 2,
+          "expected": 2,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 7,
+        "steps": 5,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.422,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 1.8
+    },
+    {
+      "id": "misheard-name",
+      "mode": "sketch",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 6,
+        "steps": 5,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.38,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 2.153
+    },
+    {
+      "id": "misheard-name",
+      "mode": "speech",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 0,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 0.0,
+          "recall": 0.0
+        },
+        "relation": {
+          "tp": 0,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 0.0,
+          "recall": 0.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 6,
+        "steps": 5,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.446,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 2.2
+    },
+    {
+      "id": "misheard-name",
+      "mode": "both",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 1,
+          "predicted": 2,
+          "expected": 1,
+          "precision": 0.5,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 1,
+          "predicted": 2,
+          "expected": 1,
+          "precision": 0.5,
+          "recall": 1.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 7,
+        "steps": 5,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.577,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 2.121
+    },
+    {
+      "id": "negation",
+      "mode": "sketch",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 1,
+          "predicted": 1,
+          "expected": 1,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 4,
+        "steps": 3,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.143,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 0.929
+    },
+    {
+      "id": "negation",
+      "mode": "speech",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 1,
+          "predicted": 2,
+          "expected": 1,
+          "precision": 0.5,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 1,
+          "predicted": 2,
+          "expected": 1,
+          "precision": 0.5,
+          "recall": 1.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 4,
+        "steps": 3,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.191,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 0.955
+    },
+    {
+      "id": "negation",
+      "mode": "both",
+      "status": "awaiting_user",
+      "metrics": {
+        "entity": {
+          "tp": 1,
+          "predicted": 2,
+          "expected": 1,
+          "precision": 0.5,
+          "recall": 1.0
+        },
+        "relation": {
+          "tp": 1,
+          "predicted": 2,
+          "expected": 1,
+          "precision": 0.5,
+          "recall": 1.0
+        },
+        "contradiction": {
+          "tp": 0,
+          "predicted": 0,
+          "expected": 0,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "contradictions_surfaced": 0,
+        "wrong_accepted_anchors": 0,
+        "accepted_anchors": 0,
+        "wrong_proposed_anchors": 0
+      },
+      "telemetry": {
+        "calls": 5,
+        "steps": 3,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "tokens": 0,
+        "usage_complete": false,
+        "latency_ms": 0.217,
+        "estimated_cost_usd": 0,
+        "cost_complete": true,
+        "pricing_status": "UNVERIFIED"
+      },
+      "wall_latency_ms": 1.091
+    }
+  ]
+}
