@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Map What People Know</title>
+<style>
+body{font:14px system-ui,sans-serif;margin:16px;background:#fafafa;color:#111}
+h1{font-size:18px;margin:0 0 8px} h2{font-size:14px;margin:12px 0 4px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px} .box{background:#fff;border:1px solid #ddd;border-radius:6px;padding:8px}
+.row{display:flex;gap:12px;flex-wrap:wrap} table{border-collapse:collapse;width:100%} td,th{border-bottom:1px solid #eee;padding:2px 4px;text-align:left;font-size:12px}
+button{margin:2px;padding:4px 8px;cursor:pointer} .warn{background:#fff3cd;border:1px solid #e0c36a;padding:6px;border-radius:4px;margin:4px 0}
+.err{color:#a00} .ok{color:#070} code{font-size:12px}
+</style></head><body>
+<h1>Map What People Know <small>(draft; fictional demo area; mock providers unless configured)</small></h1>
+<button id="demo">Load built-in demo case</button> <span id="mode"></span>
+<div id="app" style="display:none">
+<h2>Transcript</h2><div class="box" id="tx"></div>
+<div class="cols">
+ <div class="box"><h2>Sketch observations</h2><div id="sk"></div><img id="img" style="max-width:100%;margin-top:6px"></div>
+ <div class="box"><h2>Speech observations</h2><div id="sp"></div></div>
+</div>
+<div class="row"><div class="box" style="flex:1;min-width:300px"><h2>Contradiction queue</h2><div id="cq"></div>
+ <h2>Anchors</h2><div id="anc"></div></div>
+ <div class="box" style="flex:1;min-width:300px"><h2>Draft boundary</h2><svg id="svg" viewBox="0 0 320 260" width="100%" style="background:#f4f8ff"></svg>
+ <div id="bstat"></div><a id="exp" target="_blank">Export GeoJSON (confirmed only)</a></div></div>
+<div class="box"><h2>Agent trace</h2><div id="tr"></div></div>
+</div>
+<script>
+let run=null;
+const $=id=>document.getElementById(id), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const j=async(u,o)=>{const r=await fetch(u,o);if(!r.ok)throw new Error(await r.text());return r.json()};
+const post=(u,b)=>j(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+fetch('/api/health').then(r=>r.json()).then(h=>$('mode').textContent='provider: '+h.provider);
+$('demo').onclick=async()=>{run=await j('/api/runs/demo',{method:'POST'});render()};
+function obsTable(list){return '<table><tr><th>entity</th><th>predicate</th><th>value</th><th>ref</th></tr>'+list.map(o=>`<tr><td>${esc(o.entity)}</td><td>${esc(o.predicate)}</td><td>${esc(o.value)}</td><td>${esc(o.source_ref)}</td></tr>`).join('')+'</table>'}
+async function render(){
+ $('app').style.display='block';
+ $('tx').textContent=run.transcript;
+ $('sk').innerHTML=obsTable(run.observations.filter(o=>o.modality=='sketch'));
+ $('sp').innerHTML=obsTable(run.observations.filter(o=>o.modality=='speech'));
+ if(run.has_sketch)$('img').src='/api/runs/'+run.id+'/sketch';
+ $('cq').innerHTML=run.contradictions.map(c=>{const r=run.resolutions[c.id];
+  return `<div class="warn"><b>${esc(c.entity)} / ${esc(c.predicate)}</b><br>${esc(c.question)}<br>`+
+  c.observations.map(o=>`<button data-c="${c.id}" data-o="${o.id}">${esc(o.modality)}: ${esc(o.value)} (${esc(o.source_ref)})</button>`).join('')+
+  `<button data-c="${c.id}" data-o="">leave unresolved</button>`+(r?`<br>Answer recorded: ${r.chosen_observation_id||'unresolved'} (alternatives kept)`:'')+`</div>`}).join('')||'none';
+ document.querySelectorAll('[data-c]').forEach(b=>b.onclick=async()=>{run=await post(`/api/runs/${run.id}/answers`,{contradiction_id:b.dataset.c,chosen_observation_id:b.dataset.o||null});render()});
+ $('anc').innerHTML='<table><tr><th>#</th><th>label</th><th>status</th><th></th></tr>'+run.anchors.map(a=>`<tr><td>${a.order??'-'}</td><td>${esc(a.label)}</td><td class="${a.status=='unresolved'?'err':''}">${a.status}${a.reason?' - '+esc(a.reason):''}</td><td>${a.status=='proposed'?`<button data-a="${a.id}">confirm</button>`:''}</td></tr>`).join('')+'</table>';
+ document.querySelectorAll('[data-a]').forEach(b=>b.onclick=async()=>{run=await post(`/api/runs/${run.id}/confirm`,{anchor_ids:[b.dataset.a]});render()});
+ const bd=run.boundary, svg=$('svg'); svg.innerHTML='';
+ if(bd.local_xy_m.length){const xs=bd.local_xy_m.map(p=>p[0]),ys=bd.local_xy_m.map(p=>p[1]);
+  const mnx=Math.min(...xs),mxx=Math.max(...xs),mny=Math.min(...ys),mxy=Math.max(...ys),s=Math.min(280/Math.max(mxx-mnx,1),220/Math.max(mxy-mny,1));
+  const pt=p=>[20+(p[0]-mnx)*s,240-(p[1]-mny)*s];
+  svg.innerHTML=`<polygon points="${bd.local_xy_m.map(pt).join(' ')}" fill="${bd.status=='valid_draft'?'#7bd88f55':'#f5a3a355'}" stroke="#333" stroke-dasharray="4"/>`+
+   bd.local_xy_m.map((p,i)=>{const q=pt(p);return `<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="navy"/><text x="${q[0]+6}" y="${q[1]-6}" font-size="10">${i+1}</text>`}).join('')}
+ $('bstat').innerHTML=`<b class="${bd.status=='valid_draft'?'ok':'err'}">${bd.status}</b>${bd.area_m2?' - '+bd.area_m2+' m2':''} ${bd.errors.map(esc).join('; ')}<br><small>${esc(bd.note)}</small>`;
+ $('exp').href='/api/runs/'+run.id+'/export';
+ const tr=await j('/api/runs/'+run.id+'/trace');
+ $('tr').innerHTML='<table><tr><th>agent</th><th>role</th><th>model</th><th>in</th><th>out</th><th>ms</th><th>status</th></tr>'+tr.map(t=>`<tr><td>${esc(t.agent)}</td><td>${esc(t.role)}</td><td>${esc(t.model)}</td><td>${esc(t.input_summary)}</td><td>${esc(t.output_summary)}</td><td>${t.duration_ms}</td><td>${t.status}</td></tr>`).join('')+'</table>';
+}
+</script></body></html>

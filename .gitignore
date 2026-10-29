@@ -3,3 +3,6 @@
 !.env.example
 __pycache__/
 spike/private/
+.venv/
+data/
+.pytest_cache/
